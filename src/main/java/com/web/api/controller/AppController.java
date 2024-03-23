@@ -1,24 +1,13 @@
 package com.web.api.controller;
 
-import com.web.api.model.User;
-import com.web.api.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 @RestController
 public class AppController {
-
-    @Autowired
-    private UserRepository userRepository;
 
     int as = 12;
 
@@ -46,9 +35,9 @@ public class AppController {
     }
 
     @RequestMapping(value = "/users", method = RequestMethod.GET)
-    public List<User> users(){
-        List<User> users = userRepository.findAll();
-        return users;
+    public ArrayList<String> users(){
+        ArrayList<String> data = users;
+        return data;
     }
 
     @GetMapping("/get-end")
