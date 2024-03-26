@@ -4,6 +4,7 @@ import com.web.api.dto.UserUpdateRequest;
 import com.web.api.dto.UsernameRequest;
 import com.web.api.model.User;
 import com.web.api.repository.UserRepository;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,7 +24,7 @@ public class UserController {
     }
 
     @PostMapping("/api/register")
-    public String register(@RequestBody UsernameRequest data) throws NoSuchAlgorithmException {
+    public String register(@Valid @RequestBody UsernameRequest data) throws NoSuchAlgorithmException {
         System.out.println(data);
 
         Optional<User> optionalUser = userRepository.findByUsernameAndDeleted(data.getUsername(),false);
@@ -95,5 +96,14 @@ public class UserController {
 
         return "Successful";
     }
+
+    @GetMapping("/api/users/search/{id}")
+    public Object searchByIdGreaterThan(@PathVariable Long id){
+        List<User> userList = userRepository.findByIdGreaterThanAndDeleted(id,false);
+        return userList;
+    }
+
+//        new User();
+//        User.builder().lastname("Asas").firstname("ahsj").build();
 
 }
