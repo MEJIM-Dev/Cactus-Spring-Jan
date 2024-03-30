@@ -2,15 +2,18 @@ package com.web.api.controller;
 
 import com.web.api.dto.UserUpdateRequest;
 import com.web.api.dto.UsernameRequest;
+import com.web.api.dto.response.ApiResponse;
 import com.web.api.model.User;
 import com.web.api.repository.UserRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.security.NoSuchAlgorithmException;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 public class UserController {
@@ -40,27 +43,36 @@ public class UserController {
     }
 
     @GetMapping("/api/user/{id}")
-    public User getUser(@PathVariable Long id){
+    public ResponseEntity<Object> getUser(@PathVariable Long id){
         Optional<User> optionalUser = userRepository.findByIdAndDeleted(id,false);
+        Map<String,Object> responseBody = new HashMap<>();
         if(optionalUser.isEmpty()){
-            return null;
+            responseBody.put("message","User Not Found");
+            responseBody.put("data",null);
+            return new ResponseEntity<>(responseBody, HttpStatus.NOT_FOUND);
         }
         User user = optionalUser.get();
-        return user;
+
+        responseBody.put("message","Successful");
+        responseBody.put("data",user);
+        return ResponseEntity.ok(responseBody);
     }
 
     @PutMapping("/api/user/{id}/update")
-    public Object updateUser(@PathVariable Long id, @RequestBody UserUpdateRequest request){
+    public ResponseEntity<Object> updateUser(@PathVariable Long id, @RequestBody UserUpdateRequest request){
         Optional<User> optionalUser = userRepository.findByIdAndDeleted(id,false);
+        ApiResponse responseBody = new ApiResponse();
         if(optionalUser.isEmpty()){
-            return "Invalid User";
+            responseBody.setMessage("Invalid User");
+            responseBody.setStatus(HttpStatus.NOT_FOUND.value());
+            return new ResponseEntity<>(responseBody,HttpStatus.NOT_FOUND);
         }
 
         Optional<User> byUsername = userRepository.findByUsernameAndDeleted(request.getUsername(),false);
         if(byUsername.isPresent()){
             User user = byUsername.get();
             if(user.getId()!=id) {
-                return "Username Already Exist";
+                return new ResponseEntity<>("Username Already Exist",HttpStatus.BAD_REQUEST);
             }
         }
 
@@ -71,7 +83,7 @@ public class UserController {
         user.setLastname(request.getLastname());
 
         userRepository.save(user);
-        return "Successful";
+        return ResponseEntity.ok("Successful");
     }
 
     @DeleteMapping("/api/user/{id}/hard-delete")
@@ -98,9 +110,20 @@ public class UserController {
     }
 
     @GetMapping("/api/users/search/{id}")
-    public Object searchByIdGreaterThan(@PathVariable Long id){
+    public ResponseEntity<ApiResponse> searchByIdGreaterThan(@PathVariable Long id){
+        ApiResponse responseBody = new ApiResponse();
         List<User> userList = userRepository.findByIdGreaterThanAndDeleted(id,false);
-        return userList;
+        if(userList.size()<1){
+            responseBody.setData(userList);
+            responseBody.setMessage("No User Found");
+            responseBody.setStatus(HttpStatus.BAD_REQUEST.value());
+            return ResponseEntity.badRequest().body(responseBody);
+        }
+
+        responseBody.setData(userList);
+        responseBody.setMessage("Successful");
+        responseBody.setStatus(HttpStatus.OK.value());
+        return ResponseEntity.ok(responseBody);
     }
 
 //        new User();
